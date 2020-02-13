@@ -20,7 +20,7 @@ class JustHungry:
         self.users = defaultdict(lambda: [None, None, []])
         # token: username
         self.user_tokens = defaultdict(lambda: None)
-        _init_items()
+        self._init_items()
     def _init_items(self):
         # item_name: price in pence
         self.items = defaultdict(lambda: None)
@@ -78,6 +78,7 @@ class JustHungry:
     def delete_account(self, user_token):
         delete_user = self.user_tokens[user_token]
         if delete_user:
+            self.logout(user_token)
             self.user_tokens.pop(self.user_tokens['user_token'])
             self.users.pop(delete_user)
         else:
@@ -88,19 +89,20 @@ class JustHungry:
     def make_order(self, user_token, item_name, quantity, address):
         user = self.user_tokens[user_token]
         if user == None:
-            return False
+            return None
         if self.items[item_name] == None:
-            return False
+            return None
         if quantity < 1:
-            return False
+            return None
         if address == "" or not address:
-            return False
+            return None 
 
+        order_id = '%020x' % random.randrange(16 ** 20) 
         self.users[user][2].append(
-                ['%020x' % random.randrange(16 ** 20), item_name, quantity, address, self.items[item_name]*quantity, "processing", "3 days"]
+                [order_id, item_name, quantity, address, self.items[item_name]*quantity, "processing", "3 days"]
             )
         print("Successfully placed order")
-        return True
+        return order_id 
 
     # View orders by a user
     def view_order(self, user_token):
