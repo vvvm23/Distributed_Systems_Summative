@@ -6,6 +6,30 @@ import Pyro4.util
 class Client:
     def __init__(self):
         pass
+
+    def login(self):
+        pass
+
+    def logout(self):
+        pass
+
+    def create_account(self):
+        pass
+    
+    def delete_account(self):
+        pass
+
+    def make_order(self):
+        pass
+
+    def cancel_order(self):
+        pass
+
+    def view_orders(self):
+        pass
+
+    def show_items(self):
+        pass
     
 sys.excepthook = Pyro4.util.excepthook
 
