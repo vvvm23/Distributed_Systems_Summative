@@ -79,7 +79,6 @@ class JustHungry:
         delete_user = self.user_tokens[user_token]
         if delete_user:
             self.logout(user_token)
-            self.user_tokens.pop(self.user_tokens['user_token'])
             self.users.pop(delete_user)
         else:
             print(f"Failed to delete user.")
@@ -105,7 +104,7 @@ class JustHungry:
         return order_id 
 
     # View orders by a user
-    def view_order(self, user_token):
+    def view_orders(self, user_token):
         user = self.user_tokens[user_token]
         if user == None:
             return None

@@ -89,7 +89,7 @@ class Client:
         if not self.token:
             print("ERROR: No token provided")
             return
-        orders = self.server(self.token)
+        orders = self.server.view_orders(self.token)
         pprint(orders)
 
     def show_items(self):
@@ -106,6 +106,15 @@ if __name__ == "__main__":
     client.set_server(jh)
     client.create_account()
     client.login()
-
-
+    client.show_items()
+    client.make_order("Beef", 2, "foobar street")
+    client.make_order("Banana", 7, "foobar street")
+    client.make_order("Cake", 1, "fizzbang towers, F1.5")
+    client.view_orders()
+    client.cancel_order(client.orders[1])
+    client.view_orders()
+    client.delete_account()
+    client.create_account()
+    client.login()
+    client.view_orders()
     client.logout()
