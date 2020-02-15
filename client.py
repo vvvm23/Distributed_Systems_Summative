@@ -4,47 +4,108 @@ import Pyro4
 import Pyro4.util
 
 class Client:
-    def __init__(self):
-        pass
+    def __init__(self, username, keyphrase):
+        self.username = username
+        self.keyphrase = keyphrase
+        self.token = None
+        self.orders = []
+
+    def set_server(self, server):
+        self.server = server
 
     def login(self):
-        pass
+        if not self.server:
+            print("ERROR: No server defined!")
+            return
+        self.token = self.server.login(self.username, self.keyphrase)
+        if not self.token:
+            print("ERROR: Failed to obtain token!")
+            return
+        print("INFO: Logged in successfully!")
 
     def logout(self):
-        pass
+        if not self.server:
+            print("ERROR: No server defined!")
+            return
+        if not self.token:
+            print("ERROR: No token provided")
+            return
+        if not self.server.logout(self.token):
+            print("ERROR: Failed to logout!")
+            return
+        print("INFO: Logged out successfully!")
 
     def create_account(self):
-        pass
+        if not self.server:
+            print("ERROR: No server defined!")
+            return
+        if not self.server.create_account(self.username, self.keyphrase):
+            print("ERROR: Failed to create account!")
+            return
+        print("INFO: New account created!")
     
     def delete_account(self):
-        pass
+        if not self.server:
+            print("ERROR: No server defined!")
+            return
+        if not self.token:
+            print("ERROR: No token provided")
+            return
+        if not self.server.delete_account(self.token):
+            print("ERROR: Failed to delete account")
+            return
+        print("INFO: Successfully deleted account!")
+        self.token = None
 
-    def make_order(self):
-        pass
+    def make_order(self, item_name, quantity, address):
+        if not self.server:
+            print("ERROR: No server defined!")
+            return
+        if not self.token:
+            print("ERROR: No token provided")
+            return
+        order_id = self.server.make_order(self.token, item_name, quantity, address)
+        self.orders.append(order_id)
+        print(f"INFO: Created new order with id {order_id}")
 
-    def cancel_order(self):
-        pass
+    def cancel_order(self, order_id):
+        if not self.server:
+            print("ERROR: No server defined!")
+            return
+        if not self.token:
+            print("ERROR: No token provided")
+            return
+        if not self.server.cancel_order(self.token, order_id):
+            print("ERROR: Failed to cancel order!")
+            return
+        self.orders.remove(order_id)
+        print(f"INFO: Successfully cancelled order with id {order_id}")
+        
 
     def view_orders(self):
-        pass
+        if not self.server:
+            print("ERROR: No server defined!")
+            return
+        if not self.token:
+            print("ERROR: No token provided")
+            return
+        orders = self.server(self.token)
+        pprint(orders)
 
     def show_items(self):
-        pass
+        if not self.server:
+            print("ERROR: No server defined!")
+            return
+        pprint(self.server.show_items())
     
 sys.excepthook = Pyro4.util.excepthook
 
 if __name__ == "__main__":
     jh = Pyro4.Proxy("PYRONAME:example.just_hungry")
-    client = Client()
+    client = Client("vvvm23", "foobar")
+    client.set_server(jh)
+    client.create_account()
+    client.login()
 
-    if not jh.create_account("mrsushidog", "d68f44c5379310a71203"):
-        print("failed to make account")
-    token = jh.login("mrsushidog", "d68f44c5379310a71203")
-    print(f"My token is {token}")
-    pprint(jh.show_items())
-    order1 = jh.make_order(token, "Banana", 69, "Foobar street, Mogadishu")
-    order2 = jh.make_order(token, "Beef", 4, "Foobar street, Mogadishu")
-    pprint(jh.view_order(token))
-    jh.cancel_order(token, order1)
-    pprint(jh.view_order(token))
-    jh.logout(token)
+
+    client.logout()
