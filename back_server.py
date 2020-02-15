@@ -15,6 +15,7 @@ import random
 @Pyro4.behavior(instance_mode="single")
 class JustHungry:
     def __init__(self):
+        self.is_working = True
         # user_name: (keyphrase, logged_in?, orders)
         # order = [order_id, item_name, quantity, address, price, status, eta]
         self.users = defaultdict(lambda: [None, None, []])
@@ -31,6 +32,18 @@ class JustHungry:
                 "Cheese": 119, "Milk": 119, "Bread": 79,
                 "Cake": 399, "Icecream": 129, "Biscuit": 99
         }
+
+    def slave_sync(self, users, user_tokens):
+        self.users = users.copy()
+        self.user_tokens = user_tokens.copy()
+        print("Synced successfully.")
+
+    def disable_server(self):
+        self.is_working = False
+
+    def enable_server(self):
+        self.is_working = True
+
     # Login user and obtain session token
     def login(self, username, keyphrase):
         if self.users[username][1]:
