@@ -16,6 +16,7 @@ import random
 class JustHungry:
     def __init__(self):
         self.is_working = True
+
         # user_name: (keyphrase, logged_in?, orders)
         # order = [order_id, item_name, quantity, address, price, status, eta]
         self.users = defaultdict(lambda: [None, None, []])
@@ -93,6 +94,7 @@ class JustHungry:
         if delete_user:
             self.logout(user_token)
             self.users.pop(delete_user)
+            return True
         else:
             print(f"Failed to delete user.")
             return False
@@ -145,5 +147,5 @@ if __name__ == "__main__":
                 {
                     JustHungry: "example.just_hungry"  
                 },
-            ns=True)
+                ns=True)
 
