@@ -143,9 +143,10 @@ class JustHungry:
         return False
 
 if __name__ == "__main__":
+    server_rand_id = '%020x' % random.randrange(16 ** 20) 
     Pyro4.Daemon.serveSimple(
                 {
-                    JustHungry: "example.just_hungry"  
+                    JustHungry: f"just_hungry.{server_rand_id}"  
                 },
                 ns=True)
 
