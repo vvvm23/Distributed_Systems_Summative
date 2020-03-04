@@ -6,11 +6,16 @@ class FrontServer:
     def __init__(self):
         self.primary = None
         self.ns = Pyro4.locateNS()
-        self.set_primary()
+        if not self.ns:
+            print("ERROR: Failed to locate Name Server. Exiting..")
+            exit()
         self.methods = None
+        if not self.set_primary():
+            print("ERROR: Failed to find primary server. Exiting..")
+            exit()
 
     def set_primary(self):
-        servers = [(name, uri) for name, uri in ns.list(prefix="just_hungry.backend").items()]
+        servers = [(name, uri) for name, uri in self.ns.list(prefix="just_hungry.back_end").items()]
         for s in servers:
             active = Pyro4.Proxy(s[1])
             if active.ping_respond():
@@ -46,7 +51,7 @@ class FrontServer:
                 print("ERROR: Failed to find new primary server!")
                 return False
         
-        server_result = self.methods[method](args)
+        server_result = self.methods[method](**args)
         return server_result
 
 if __name__ == "__main__":

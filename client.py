@@ -17,7 +17,8 @@ class Client:
         if not self.server:
             print("ERROR: No server defined!")
             return
-        self.token = self.server.login(self.username, self.keyphrase)
+        # self.token = self.server.login(self.username, self.keyphrase)
+        self.token = self.server.forward_request("login", username=self.username, keyphrase=self.keyphrase)
         if not self.token:
             print("ERROR: Failed to obtain token!")
             return
@@ -30,7 +31,8 @@ class Client:
         if not self.token:
             print("ERROR: No token provided")
             return
-        if not self.server.logout(self.token):
+        # if not self.server.logout(self.token):
+        if not self.server.forward_request("logout", token=self.token):
             print("ERROR: Failed to logout!")
             return
         print("INFO: Logged out successfully!")
@@ -39,7 +41,8 @@ class Client:
         if not self.server:
             print("ERROR: No server defined!")
             return
-        if not self.server.create_account(self.username, self.keyphrase):
+        # if not self.server.create_account(self.username, self.keyphrase):
+        if not self.server.forward_request("create_account", username=self.username, keyphrase=self.keyphrase):
             print("ERROR: Failed to create account!")
             return
         print("INFO: New account created!")
@@ -51,7 +54,8 @@ class Client:
         if not self.token:
             print("ERROR: No token provided")
             return
-        if not self.server.delete_account(self.token):
+        # if not self.server.delete_account(self.token):
+        if not self.server.forward_request("delete_account", user_token=self.token):
             print("ERROR: Failed to delete account")
             return
         print("INFO: Successfully deleted account!")
@@ -101,20 +105,17 @@ class Client:
 sys.excepthook = Pyro4.util.excepthook
 
 if __name__ == "__main__":
-    jh = Pyro4.Proxy("PYRONAME:example.just_hungry")
+    # jh = Pyro4.Proxy("PYRONAME:example.just_hungry")
+    ns = Pyro4.locateNS()
+    servers = [(name, uri) for name, uri in ns.list(prefix="just_hungry.front_end").items()]
+    if not len(servers):
+        print("ERROR: Cannot find frontend server!")
+        exit()
+    
+    front_server = Pyro4.Proxy(servers[0][1])
+
     client = Client("vvvm23", "foobar")
-    client.set_server(jh)
+    client.set_server(front_server)
     client.create_account()
     client.login()
-    client.show_items()
-    client.make_order("Beef", 2, "foobar street")
-    client.make_order("Banana", 7, "foobar street")
-    client.make_order("Cake", 1, "fizzbang towers, F1.5")
-    client.view_orders()
-    client.cancel_order(client.orders[1])
-    client.view_orders()
     client.delete_account()
-    client.create_account()
-    client.login()
-    client.view_orders()
-    client.logout()
