@@ -1,4 +1,6 @@
+import sys
 import Pyro4
+import Pyro4.util
 
 @Pyro4.expose
 @Pyro4.behavior(instance_mode="single")
@@ -24,7 +26,7 @@ class FrontServer:
                 continue
             if active.ping_respond():
                 self.primary = active
-                self.primary.set_master(True)
+                self.primary.promote_master()
                 self.methods = {
                     "login": active.login,
                     "logout": active.logout,
@@ -63,6 +65,8 @@ class FrontServer:
         server_result = self.methods[method](**args)
         self.primary.master_sync()
         return server_result
+
+sys.excepthook = Pyro4.util.excepthook
 
 if __name__ == "__main__":
     Pyro4.Daemon.serveSimple({

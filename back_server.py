@@ -1,4 +1,6 @@
+import sys
 import Pyro4
+import Pyro4.util
 from collections import defaultdict
 import random
 '''
@@ -43,6 +45,9 @@ class JustHungry:
         }
 
     def set_master(self, state):
+        self.is_master = state
+
+    def promote_master(self):
         slaves = [(name, uri) for name, uri in self.ns.list(prefix="just_hungry.back_end").items()]
         for s in slaves:
             try:
@@ -55,7 +60,8 @@ class JustHungry:
             
             sl.set_master(False)
 
-        self.is_master = state
+        print("INFO: This server is now the new Master Server")
+        self.is_master = True
 
     def master_sync(self):
         if self.is_master:
@@ -180,6 +186,7 @@ class JustHungry:
                 return True
 
         return False
+sys.excepthook = Pyro4.util.excepthook
 
 if __name__ == "__main__":
     server_rand_id = '%020x' % random.randrange(16 ** 20) 
