@@ -23,6 +23,8 @@ class JustHungry:
         # token: username
         self.user_tokens = defaultdict(lambda: None)
         self._init_items()
+    def ping_respond(self):
+        return self.is_working
     def _init_items(self):
         # item_name: price in pence
         self.items = defaultdict(lambda: None)
@@ -146,7 +148,7 @@ if __name__ == "__main__":
     server_rand_id = '%020x' % random.randrange(16 ** 20) 
     Pyro4.Daemon.serveSimple(
                 {
-                    JustHungry: f"just_hungry.{server_rand_id}"  
+                    JustHungry: f"just_hungry.back_end.{server_rand_id}"  
                 },
                 ns=True)
 
