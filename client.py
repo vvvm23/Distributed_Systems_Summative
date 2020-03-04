@@ -32,7 +32,7 @@ class Client:
             print("ERROR: No token provided")
             return
         # if not self.server.logout(self.token):
-        if not self.server.forward_request("logout", token=self.token):
+        if not self.server.forward_request("logout", user_token=self.token):
             print("ERROR: Failed to logout!")
             return
         print("INFO: Logged out successfully!")
@@ -68,7 +68,8 @@ class Client:
         if not self.token:
             print("ERROR: No token provided")
             return
-        order_id = self.server.make_order(self.token, item_name, quantity, address)
+        # order_id = self.server.make_order(self.token, item_name, quantity, address)
+        order_id = self.server.forward_request("make_order", user_token=self.token, item_name=item_name, quantity=quantity, address=address)
         self.orders.append(order_id)
         print(f"INFO: Created new order with id {order_id}")
 
@@ -79,7 +80,8 @@ class Client:
         if not self.token:
             print("ERROR: No token provided")
             return
-        if not self.server.cancel_order(self.token, order_id):
+        # if not self.server.cancel_order(self.token, order_id):
+        if not self.server.forward_request("cancel_order", user_token=self.token, order_id=order_id):
             print("ERROR: Failed to cancel order!")
             return
         self.orders.remove(order_id)
@@ -93,14 +95,16 @@ class Client:
         if not self.token:
             print("ERROR: No token provided")
             return
-        orders = self.server.view_orders(self.token)
+        # orders = self.server.view_orders(self.token)
+        orders = self.server.forward_request("view_orders", user_token=self.token)
         pprint(orders)
 
     def show_items(self):
         if not self.server:
             print("ERROR: No server defined!")
             return
-        pprint(self.server.show_items())
+        # pprint(self.server.show_items())
+        pprint(self.server.forward_request("show_items"))
     
 sys.excepthook = Pyro4.util.excepthook
 
@@ -118,4 +122,13 @@ if __name__ == "__main__":
     client.set_server(front_server)
     client.create_account()
     client.login()
+    client.logout()
+    client.login()
+    client.show_items()
+    client.make_order("Cake", 2, "foobar street")
+    client.make_order("Cheese", 69, "foobar street")
+    client.view_orders()
+    client.cancel_order(client.orders[1])
+    client.view_orders()
+
     client.delete_account()
