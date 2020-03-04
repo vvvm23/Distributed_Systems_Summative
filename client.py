@@ -122,6 +122,7 @@ if __name__ == "__main__":
     client.set_server(front_server)
     client.create_account()
     client.login()
+    client.make_order("Carrot", 400, "foobar avenue")
     client.logout()
     client.login()
     client.show_items()

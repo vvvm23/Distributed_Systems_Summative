@@ -16,6 +16,11 @@ import random
 class JustHungry:
     def __init__(self):
         self.is_working = True
+        self.is_master = False
+        
+        self.ns = Pyro4.locateNS()
+        if not self.ns:
+            print("ERROR: Failed to locate Name Server. Exiting..")
 
         # user_name: (keyphrase, logged_in?, orders)
         # order = [order_id, item_name, quantity, address, price, status, eta]
@@ -24,6 +29,7 @@ class JustHungry:
         self.user_tokens = defaultdict(lambda: None)
         self._init_items()
     def ping_respond(self):
+        # TODO: pyroSync may be useful here <04-03-20, alex> #
         return self.is_working
     def _init_items(self):
         # item_name: price in pence
@@ -36,10 +42,41 @@ class JustHungry:
                 "Cake": 399, "Icecream": 129, "Biscuit": 99
         }
 
+    def set_master(self, state):
+        slaves = [(name, uri) for name, uri in self.ns.list(prefix="just_hungry.back_end").items()]
+        for s in slaves:
+            try:
+                sl = Pyro4.Proxy(s[1])
+                sl._pyroBind()
+            except Exception as e:
+                continue
+            if not sl.ping_respond():
+                continue
+            
+            sl.set_master(False)
+
+        self.is_master = state
+
+    def master_sync(self):
+        if self.is_master:
+            slaves = [(name, uri) for name, uri in self.ns.list(prefix="just_hungry.back_end").items()]
+            for s in slaves:
+                try:
+                    sl = Pyro4.Proxy(s[1])
+                    sl._pyroBind()
+                except Exception as e:
+                    continue
+                if not sl.ping_respond():
+                    continue
+                sl.slave_sync(self.users, self.user_tokens)
+
+
     def slave_sync(self, users, user_tokens):
-        self.users = users.copy()
-        self.user_tokens = user_tokens.copy()
-        print("Synced successfully.")
+        if not self.is_master:
+            self.users = users.copy()
+            self.user_tokens = user_tokens.copy()
+            print("Synced successfully.")
+
 
     def disable_server(self):
         self.is_working = False

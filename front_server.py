@@ -18,8 +18,13 @@ class FrontServer:
         servers = [(name, uri) for name, uri in self.ns.list(prefix="just_hungry.back_end").items()]
         for s in servers:
             active = Pyro4.Proxy(s[1])
+            try:
+                active._pyroBind()
+            except Exception as e:
+                continue
             if active.ping_respond():
                 self.primary = active
+                self.primary.set_master(True)
                 self.methods = {
                     "login": active.login,
                     "logout": active.logout,
@@ -34,6 +39,10 @@ class FrontServer:
         return False
 
     def ping_primary(self):
+        try:
+            self.primary._pyroBind()
+        except Exception as e:
+            return False
         if self.primary.ping_respond():
             return True
         return False
@@ -52,6 +61,7 @@ class FrontServer:
                 return False
         
         server_result = self.methods[method](**args)
+        self.primary.master_sync()
         return server_result
 
 if __name__ == "__main__":
