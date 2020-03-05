@@ -1,7 +1,9 @@
 import sys
 import Pyro4
 import Pyro4.util
+import urllib.request
 from collections import defaultdict
+import json
 import random
 '''
     Commands:
@@ -98,6 +100,17 @@ class JustHungry:
     def enable_server(self):
         self.is_working = True
 
+    # Check if postcode is valid using external service
+    def validate_postcode(self, code):
+        print(f"DEBUG: Checking https://api.postcodes.io/postcodes/{code}/validate")
+        result = False
+        with urllib.request.urlopen(f"https://api.postcodes.io/postcodes/{code}/validate") as res:
+            json_res = json.loads(res.read().decode('utf-8'))
+            print(json_res)
+            result = json_res['result']
+
+        return result
+
     # Login user and obtain session token
     def login(self, username, keyphrase):
         if self.users[username][1]:
@@ -163,6 +176,9 @@ class JustHungry:
             return None
         if address == "" or not address:
             return None 
+        if not self.validate_postcode(address):
+            print("ERROR: Invalid postcode!")
+            return None
 
         order_id = '%020x' % random.randrange(16 ** 20) 
         self.users[user][2].append(

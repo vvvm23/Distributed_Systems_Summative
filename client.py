@@ -93,8 +93,11 @@ class Client:
             return
         # order_id = self.server.make_order(self.token, item_name, quantity, address)
         order_id = self.server.forward_request("make_order", user_token=self.token, item_name=item_name, quantity=quantity, address=address)
-        self.orders.append(order_id)
-        print(f"INFO: Created new order with id {order_id}")
+        if order_id:
+            self.orders.append(order_id)
+            print(f"INFO: Created new order with id {order_id}")
+        else:
+            print("ERROR: Failed to make new order!")
 
     def cancel_order(self, order_id):
         if not self.server:
@@ -154,12 +157,12 @@ if __name__ == "__main__":
     client.set_server(front_server)
     client.create_account()
     client.login()
-    client.make_order("Carrot", 400, "foobar avenue")
+    client.make_order("Carrot", 400, "CA130DQ")
     client.logout()
     client.login()
     client.show_items()
-    client.make_order("Cake", 2, "foobar street")
-    client.make_order("Cheese", 69, "foobar street")
+    client.make_order("Cake", 2, "DH11QL")
+    client.make_order("Cheese", 69, "foobarstreet")
     client.view_orders()
     client.cancel_order(client.orders[1])
     client.view_orders()
