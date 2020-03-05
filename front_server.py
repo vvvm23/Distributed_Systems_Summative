@@ -43,10 +43,10 @@ class FrontServer:
     def ping_primary(self):
         try:
             self.primary._pyroBind()
+            if self.primary.ping_respond():
+                return True
         except Exception as e:
             return False
-        if self.primary.ping_respond():
-            return True
         return False
 
     def forward_request(self, method, **args):
@@ -61,7 +61,6 @@ class FrontServer:
             if not self.set_primary():
                 print("ERROR: Failed to find new primary server!")
                 return False
-        
         server_result = self.methods[method](**args)
         self.primary.master_sync()
         return server_result
