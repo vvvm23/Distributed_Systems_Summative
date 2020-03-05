@@ -13,9 +13,20 @@ class Client:
     def set_server(self, server):
         self.server = server
 
+    def ping_server(self):
+        try:
+            self.server._pyroBind()
+        except Exception as e:
+            return False
+        return True
+
     def login(self):
         if not self.server:
             print("ERROR: No server defined!")
+            return
+
+        if not self.ping_server():
+            print("ERROR: Unable to connect to frontend servr!")
             return
         # self.token = self.server.login(self.username, self.keyphrase)
         self.token = self.server.forward_request("login", username=self.username, keyphrase=self.keyphrase)
@@ -27,6 +38,9 @@ class Client:
     def logout(self):
         if not self.server:
             print("ERROR: No server defined!")
+            return
+        if not self.ping_server():
+            print("ERROR: Unable to connect to frontend servr!")
             return
         if not self.token:
             print("ERROR: No token provided")
@@ -41,6 +55,9 @@ class Client:
         if not self.server:
             print("ERROR: No server defined!")
             return
+        if not self.ping_server():
+            print("ERROR: Unable to connect to frontend servr!")
+            return
         # if not self.server.create_account(self.username, self.keyphrase):
         if not self.server.forward_request("create_account", username=self.username, keyphrase=self.keyphrase):
             print("ERROR: Failed to create account!")
@@ -50,6 +67,9 @@ class Client:
     def delete_account(self):
         if not self.server:
             print("ERROR: No server defined!")
+            return
+        if not self.ping_server():
+            print("ERROR: Unable to connect to frontend servr!")
             return
         if not self.token:
             print("ERROR: No token provided")
@@ -65,6 +85,9 @@ class Client:
         if not self.server:
             print("ERROR: No server defined!")
             return
+        if not self.ping_server():
+            print("ERROR: Unable to connect to frontend servr!")
+            return
         if not self.token:
             print("ERROR: No token provided")
             return
@@ -76,6 +99,9 @@ class Client:
     def cancel_order(self, order_id):
         if not self.server:
             print("ERROR: No server defined!")
+            return
+        if not self.ping_server():
+            print("ERROR: Unable to connect to frontend servr!")
             return
         if not self.token:
             print("ERROR: No token provided")
@@ -92,6 +118,9 @@ class Client:
         if not self.server:
             print("ERROR: No server defined!")
             return
+        if not self.ping_server():
+            print("ERROR: Unable to connect to frontend servr!")
+            return
         if not self.token:
             print("ERROR: No token provided")
             return
@@ -102,6 +131,9 @@ class Client:
     def show_items(self):
         if not self.server:
             print("ERROR: No server defined!")
+            return
+        if not self.ping_server():
+            print("ERROR: Unable to connect to frontend servr!")
             return
         # pprint(self.server.show_items())
         pprint(self.server.forward_request("show_items"))
