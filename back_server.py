@@ -79,8 +79,16 @@ class JustHungry:
 
     def slave_sync(self, users, user_tokens):
         if not self.is_master:
-            self.users = users.copy()
-            self.user_tokens = user_tokens.copy()
+            self.users = defaultdict(lambda: [None, None, []])
+            for u in users:
+                self.users[u] = users[u].copy()
+
+            self.user_tokens = defaultdict(lambda: None)
+            for t in user_tokens:
+                self.user_tokens[t] = user_tokens[t]
+
+            #self.users = users.copy()
+            #self.user_tokens = user_tokens.copy()
             print("Synced successfully.")
 
 
