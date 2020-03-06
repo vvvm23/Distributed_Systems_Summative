@@ -73,6 +73,7 @@ class FrontServer:
                 return False
 
         # Get the corresponding method and call it remotely.
+        print(f"INFO: Forwarding to remote method {method}")
         server_result = self.methods[method](**args)
 
         # Tell the primary server to sync with slaves

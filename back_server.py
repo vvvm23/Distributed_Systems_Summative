@@ -79,6 +79,7 @@ class JustHungry:
     def master_sync(self):
         if self.is_master:
             slaves = [(name, uri) for name, uri in self.ns.list(prefix="just_hungry.back_end").items()]
+            print("INFO: Syncing with slave servers")
             # Synchronise with all back end servers in turn
             for s in slaves:
                 try:
@@ -94,6 +95,7 @@ class JustHungry:
     def slave_sync(self, users, user_tokens):
         if not self.is_master:
             # We must initialise this again, copy doesn't seem to work with defaultdict
+            print("INFO: Syncing with master server")
             self.users = defaultdict(lambda: [None, None, []])
             for u in users:
                 self.users[u] = users[u].copy()
