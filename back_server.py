@@ -106,11 +106,9 @@ class JustHungry:
                 self.user_tokens[t] = user_tokens[t]
             print("INFO: Synced successfully.")
 
-    def disable_server(self):
-        self.is_working = False
-
-    def enable_server(self):
-        self.is_working = True
+    def toggle_status(self):
+        self.is_working = not self.is_working
+        print(f"INFO: Server is now {'UP' if self.is_working else 'DOWN'}")
 
     # Check if postcode is valid using external service
     def validate_postcode(self, code):
