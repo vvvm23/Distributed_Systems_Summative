@@ -9,7 +9,6 @@ class Client:
         self.username = None
         self.keyphrase = None
         self.token = None
-        self.orders = []
         self.set_server(server)
 
     def set_username(self, username):
@@ -118,7 +117,6 @@ class Client:
         # Get the order id
         order_id = self.server.forward_request("make_order", user_token=self.token, item_name=item_name, quantity=quantity, address=address)
         if order_id:
-            self.orders.append(order_id)
             print(f"INFO: Created new order with id {order_id}")
         else:
             print("ERROR: Failed to make new order!")
@@ -137,7 +135,6 @@ class Client:
         if not self.server.forward_request("cancel_order", user_token=self.token, order_id=order_id):
             print("ERROR: Failed to cancel order!")
             return
-        self.orders.remove(order_id)
         print(f"INFO: Successfully cancelled order with id {order_id}")
         
     # View active orders
@@ -181,12 +178,13 @@ if __name__ == "__main__":
     client = None
     try:
         while True:
+            print()
             if client:
                 print(f"Currently logged in as {client.username}")
             else:
                 print(f"Currently logged in anonymously")
 
-            print("\nSelect Option:")
+            print("Select Option:")
             if client:
                 print("\t1. Make Order")
                 print("\t2. Cancel Order")
@@ -277,7 +275,8 @@ if __name__ == "__main__":
             else:
                 print("ERROR: Unknown Option")
                 continue
-    except e as Exception:
+    # Ensure if we crash for whatever reason to logout the client
+    except Exception as e:
         if client:
             client.logout()
         raise e
