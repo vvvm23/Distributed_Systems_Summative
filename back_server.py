@@ -38,6 +38,9 @@ class JustHungry:
         self.user_tokens = defaultdict(lambda: None)
         self._init_items()
 
+    def get_master(self):
+        return self.is_master
+
     # Fake "server up" function
     def ping_respond(self):
         return self.is_working
@@ -93,22 +96,42 @@ class JustHungry:
 
     # Synchronises the slaves with the master
     def slave_sync(self, users, user_tokens):
+        # TODO: is this needed? <06-03-20, alex> #
         if not self.is_master:
-            # We must initialise this again, copy doesn't seem to work with defaultdict
-            print("INFO: Syncing with master server")
-            self.users = defaultdict(lambda: [None, None, []])
-            for u in users:
-                self.users[u] = users[u].copy()
+            self.set_master(False)
+        # We must initialise this again, copy doesn't seem to work with defaultdict
+        print("INFO: Syncing with master server")
+        self.users = defaultdict(lambda: [None, None, []])
+        for u in users:
+            self.users[u] = users[u].copy()
 
-            # Likewise for tokens
-            self.user_tokens = defaultdict(lambda: None)
-            for t in user_tokens:
-                self.user_tokens[t] = user_tokens[t]
-            print("INFO: Synced successfully.")
+        # Likewise for tokens
+        self.user_tokens = defaultdict(lambda: None)
+        for t in user_tokens:
+            self.user_tokens[t] = user_tokens[t]
+        print("INFO: Synced successfully.")
 
     def toggle_status(self):
         self.is_working = not self.is_working
+        self.is_master = False
         print(f"INFO: Server is now {'UP' if self.is_working else 'DOWN'}")
+        if self.is_working:
+            slaves = [(name, uri) for name, uri in self.ns.list(prefix="just_hungry.back_end").items()]
+            print("INFO: Syncing with slave servers")
+            # Synchronise with all back end servers in turn
+            for s in slaves:
+                try:
+                    sl = Pyro4.Proxy(s[1])
+                    sl._pyroBind()
+                except Exception as e:
+                    continue
+                if not sl.ping_respond():
+                    continue
+                if sl.get_master():
+                    sl.master_sync()
+                    return
+            self.is_master = True
+
 
     # Check if postcode is valid using external service
     def validate_postcode(self, code):
