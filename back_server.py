@@ -15,6 +15,7 @@ import random
         Edit existing order
 '''
 
+# Expose this class as a Pyro4 class
 @Pyro4.expose
 @Pyro4.behavior(instance_mode="single")
 class JustHungry:
@@ -22,19 +23,26 @@ class JustHungry:
         self.is_working = True
         self.is_master = False
         
+        # Locate the name server
         self.ns = Pyro4.locateNS()
         if not self.ns:
             print("ERROR: Failed to locate Name Server. Exiting..")
 
+        # Define the dictionary of users
         # user_name: (keyphrase, logged_in?, orders)
         # order = [order_id, item_name, quantity, address, price, status, eta]
         self.users = defaultdict(lambda: [None, None, []])
+
+        # Define the dictionary of login tokens
         # token: username
         self.user_tokens = defaultdict(lambda: None)
         self._init_items()
+
+    # Fake "server up" function
     def ping_respond(self):
-        # TODO: pyroSync may be useful here <04-03-20, alex> #
         return self.is_working
+
+    # Initialise dictionary of items the user can buy
     def _init_items(self):
         # item_name: price in pence
         self.items = defaultdict(lambda: None)
@@ -46,9 +54,11 @@ class JustHungry:
                 "Cake": 399, "Icecream": 129, "Biscuit": 99
         }
 
+    # Change the is_master state of the server
     def set_master(self, state):
         self.is_master = state
 
+    # Promotes the target server, and demotes all the others
     def promote_master(self):
         slaves = [(name, uri) for name, uri in self.ns.list(prefix="just_hungry.back_end").items()]
         for s in slaves:
@@ -65,9 +75,11 @@ class JustHungry:
         print("INFO: This server is now the new Master Server")
         self.is_master = True
 
+    # Called by master to synchronise with slaves
     def master_sync(self):
         if self.is_master:
             slaves = [(name, uri) for name, uri in self.ns.list(prefix="just_hungry.back_end").items()]
+            # Synchronise with all back end servers in turn
             for s in slaves:
                 try:
                     sl = Pyro4.Proxy(s[1])
@@ -78,21 +90,19 @@ class JustHungry:
                     continue
                 sl.slave_sync(self.users, self.user_tokens)
 
-
+    # Synchronises the slaves with the master
     def slave_sync(self, users, user_tokens):
         if not self.is_master:
+            # We must initialise this again, copy doesn't seem to work with defaultdict
             self.users = defaultdict(lambda: [None, None, []])
             for u in users:
                 self.users[u] = users[u].copy()
 
+            # Likewise for tokens
             self.user_tokens = defaultdict(lambda: None)
             for t in user_tokens:
                 self.user_tokens[t] = user_tokens[t]
-
-            #self.users = users.copy()
-            #self.user_tokens = user_tokens.copy()
-            print("Synced successfully.")
-
+            print("INFO: Synced successfully.")
 
     def disable_server(self):
         self.is_working = False
@@ -103,32 +113,34 @@ class JustHungry:
     # Check if postcode is valid using external service
     def validate_postcode(self, code):
         print(f"DEBUG: Checking https://api.postcodes.io/postcodes/{code}/validate")
-        result = False
-        with urllib.request.urlopen(f"https://api.postcodes.io/postcodes/{code}/validate") as res:
-            json_res = json.loads(res.read().decode('utf-8'))
-            print(json_res)
-            result = json_res['result']
+        result = True
+        # TODO: uncomment later <06-03-20, alex> #
+        # result = False
+        # with urllib.request.urlopen(f"https://api.postcodes.io/postcodes/{code}/validate") as res:
+            # json_res = json.loads(res.read().decode('utf-8'))
+            # print(json_res)
+            # result = json_res['result']
 
         return result
 
-    # Login user and obtain session token
+    # Login user and return session token
     def login(self, username, keyphrase):
         if self.users[username][1]:
-            print(f"Failed to authenticate {username}")
+            print(f"INFO: Failed to authenticate {username}")
             return None 
 
         if self.users[username][0] == None:
-            print(f"Failed to authenticate {username}")
+            print(f"INFO: Failed to authenticate {username}")
             return None
 
         if self.users[username][0] == keyphrase:
             token = '%020x' % random.randrange(16 ** 20) 
             self.user_tokens[token] = username
             self.users[username][1] = True
-            print(f"Starting new session as {username} with token {token}")
+            print(f"INFO: Starting new session as {username} with token {token}")
             return token
         else:
-            print(f"Failed to authenticate {username}")
+            print(f"INFO: Failed to authenticate {username}")
             return None 
 
     # Logout user if token is valid
@@ -137,10 +149,10 @@ class JustHungry:
         if logout_user:
             self.user_tokens.pop(user_token)
             self.users[logout_user][1] = False
-            print(f"Logged out {logout_user}")
+            print(f"INFO: Logged out {logout_user}")
             return True
         else:
-            print(f"Failed to logout.")
+            print(f"INFO: Failed to logout.")
             return False
 
     # Create a new account
@@ -148,10 +160,10 @@ class JustHungry:
         if self.users[username][0] == None:
             self.users[username][0] = keyphrase
             self.users[username][1] = False
-            print(f"Created account {username}!")
+            print(f"INFO: Created account {username}!")
             return True
         else:
-            print(f"Failed to create account.")
+            print(f"INFO: Failed to create account.")
             return False
 
     # Delete an existing account
@@ -162,7 +174,7 @@ class JustHungry:
             self.users.pop(delete_user)
             return True
         else:
-            print(f"Failed to delete user.")
+            print(f"INFO: Failed to delete user.")
             return False
 
     # Make a new order
@@ -184,7 +196,7 @@ class JustHungry:
         self.users[user][2].append(
                 [order_id, item_name, quantity, address, self.items[item_name]*quantity, "processing", "3 days"]
             )
-        print("Successfully placed order")
+        print("INFO: Successfully placed order")
         return order_id 
 
     # View orders by a user
@@ -210,9 +222,12 @@ class JustHungry:
                 return True
 
         return False
-sys.excepthook = Pyro4.util.excepthook
 
+# Set the remote exception hook
+sys.excepthook = Pyro4.util.excepthook
 if __name__ == "__main__":
+    # TODO: may be better to see which servers are up, then set id <06-03-20, alex> #
+    # Set a random id
     server_rand_id = '%020x' % random.randrange(16 ** 20) 
     Pyro4.Daemon.serveSimple(
                 {

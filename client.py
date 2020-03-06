@@ -3,6 +3,7 @@ from pprint import pprint
 import Pyro4
 import Pyro4.util
 
+# Client program class
 class Client:
     def __init__(self, username, keyphrase):
         self.username = username
@@ -10,9 +11,11 @@ class Client:
         self.token = None
         self.orders = []
 
+    # Set the front end server the client interacts with
     def set_server(self, server):
         self.server = server
 
+    # Ping the primary server and see if it is up
     def ping_server(self):
         try:
             self.server._pyroBind()
@@ -20,6 +23,7 @@ class Client:
             return False
         return True
 
+    # Client login function
     def login(self):
         if not self.server:
             print("ERROR: No server defined!")
@@ -28,13 +32,14 @@ class Client:
         if not self.ping_server():
             print("ERROR: Unable to connect to frontend servr!")
             return
-        # self.token = self.server.login(self.username, self.keyphrase)
+        # Get session token
         self.token = self.server.forward_request("login", username=self.username, keyphrase=self.keyphrase)
         if not self.token:
             print("ERROR: Failed to obtain token!")
             return
         print("INFO: Logged in successfully!")
 
+    # Client logout function
     def logout(self):
         if not self.server:
             print("ERROR: No server defined!")
@@ -45,12 +50,12 @@ class Client:
         if not self.token:
             print("ERROR: No token provided")
             return
-        # if not self.server.logout(self.token):
         if not self.server.forward_request("logout", user_token=self.token):
             print("ERROR: Failed to logout!")
             return
         print("INFO: Logged out successfully!")
 
+    # Create new account
     def create_account(self):
         if not self.server:
             print("ERROR: No server defined!")
@@ -58,12 +63,12 @@ class Client:
         if not self.ping_server():
             print("ERROR: Unable to connect to frontend servr!")
             return
-        # if not self.server.create_account(self.username, self.keyphrase):
         if not self.server.forward_request("create_account", username=self.username, keyphrase=self.keyphrase):
             print("ERROR: Failed to create account!")
             return
         print("INFO: New account created!")
     
+    # Delete account
     def delete_account(self):
         if not self.server:
             print("ERROR: No server defined!")
@@ -74,13 +79,13 @@ class Client:
         if not self.token:
             print("ERROR: No token provided")
             return
-        # if not self.server.delete_account(self.token):
         if not self.server.forward_request("delete_account", user_token=self.token):
             print("ERROR: Failed to delete account")
             return
         print("INFO: Successfully deleted account!")
         self.token = None
 
+    # Make a new order
     def make_order(self, item_name, quantity, address):
         if not self.server:
             print("ERROR: No server defined!")
@@ -91,7 +96,7 @@ class Client:
         if not self.token:
             print("ERROR: No token provided")
             return
-        # order_id = self.server.make_order(self.token, item_name, quantity, address)
+        # Get the order id
         order_id = self.server.forward_request("make_order", user_token=self.token, item_name=item_name, quantity=quantity, address=address)
         if order_id:
             self.orders.append(order_id)
@@ -99,6 +104,7 @@ class Client:
         else:
             print("ERROR: Failed to make new order!")
 
+    # Cancel a order
     def cancel_order(self, order_id):
         if not self.server:
             print("ERROR: No server defined!")
@@ -109,14 +115,13 @@ class Client:
         if not self.token:
             print("ERROR: No token provided")
             return
-        # if not self.server.cancel_order(self.token, order_id):
         if not self.server.forward_request("cancel_order", user_token=self.token, order_id=order_id):
             print("ERROR: Failed to cancel order!")
             return
         self.orders.remove(order_id)
         print(f"INFO: Successfully cancelled order with id {order_id}")
         
-
+    # View active orders
     def view_orders(self):
         if not self.server:
             print("ERROR: No server defined!")
@@ -127,10 +132,11 @@ class Client:
         if not self.token:
             print("ERROR: No token provided")
             return
-        # orders = self.server.view_orders(self.token)
+        # Returns list of orders
         orders = self.server.forward_request("view_orders", user_token=self.token)
         pprint(orders)
 
+    # Show all available items
     def show_items(self):
         if not self.server:
             print("ERROR: No server defined!")
@@ -138,14 +144,14 @@ class Client:
         if not self.ping_server():
             print("ERROR: Unable to connect to frontend servr!")
             return
-        # pprint(self.server.show_items())
-        pprint(self.server.forward_request("show_items"))
+        # Returns list of items
+        items = self.server.forward_request("show_items")
+        pprint(items)
     
+# Set the remote exception hook
 sys.excepthook = Pyro4.util.excepthook
-
 if __name__ == "__main__":
-    # jh = Pyro4.Proxy("PYRONAME:example.just_hungry")
-    ns = Pyro4.locateNS()
+    ns = Pyro4.locateNS() # Locate the name server
     servers = [(name, uri) for name, uri in ns.list(prefix="just_hungry.front_end").items()]
     if not len(servers):
         print("ERROR: Cannot find frontend server!")
