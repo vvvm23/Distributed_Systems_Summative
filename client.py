@@ -33,136 +33,145 @@ class Client:
     def login(self):
         if not self.server:
             print("ERROR: No server defined!")
-            return
+            return False
 
         if not self.username or not self.keyphrase:
             print("ERROR: No username and password specified!")
-            return
+            return False
 
         if not self.ping_server():
             print("ERROR: Unable to connect to frontend servr!")
-            return
+            return False
         # Get session token
         self.token = self.server.forward_request("login", username=self.username, keyphrase=self.keyphrase)
         if not self.token:
             print("ERROR: Failed to obtain token!")
-            return
+            return False
         print("INFO: Logged in successfully!")
+        return True
 
     # Client logout function
     def logout(self):
         if not self.server:
             print("ERROR: No server defined!")
-            return
+            return False
         if not self.ping_server():
             print("ERROR: Unable to connect to frontend servr!")
-            return
+            return False
         if not self.token:
             print("ERROR: No token provided")
-            return
+            return False
         if not self.server.forward_request("logout", user_token=self.token):
             print("ERROR: Failed to logout!")
-            return
+            return False
         print("INFO: Logged out successfully!")
         self.token = None
         self.username = None
         self.keyphrase = None
+        return True
 
     # Create new account
     def create_account(self):
         if not self.server:
             print("ERROR: No server defined!")
-            return
+            return False
         if not self.username or not self.keyphrase:
             print("ERROR: No username and password specified!")
-            return
+            return False
         if not self.ping_server():
             print("ERROR: Unable to connect to frontend servr!")
-            return
+            return False
         if not self.server.forward_request("create_account", username=self.username, keyphrase=self.keyphrase):
             print("ERROR: Failed to create account!")
-            return
+            return False
         print("INFO: New account created!")
+        return True
     
     # Delete account
     def delete_account(self):
         if not self.server:
             print("ERROR: No server defined!")
-            return
+            return False
         if not self.ping_server():
             print("ERROR: Unable to connect to frontend servr!")
-            return
+            return False
         if not self.token:
             print("ERROR: No token provided")
-            return
+            return False
         if not self.server.forward_request("delete_account", user_token=self.token):
             print("ERROR: Failed to delete account")
-            return
+            return False
         print("INFO: Successfully deleted account!")
         self.username = None
         self.keyphrase = None
         self.token = None
+        return True
 
     # Make a new order
     def make_order(self, item_name, quantity, address):
         if not self.server:
             print("ERROR: No server defined!")
-            return
+            return False
         if not self.ping_server():
             print("ERROR: Unable to connect to frontend servr!")
-            return
+            return False
         if not self.token:
             print("ERROR: No token provided")
-            return
+            return False
         # Get the order id
         order_id = self.server.forward_request("make_order", user_token=self.token, item_name=item_name, quantity=quantity, address=address)
         if order_id:
             print(f"INFO: Created new order with id {order_id}")
         else:
             print("ERROR: Failed to make new order!")
+            return False
+        return True
 
     # Cancel a order
     def cancel_order(self, order_id):
         if not self.server:
             print("ERROR: No server defined!")
-            return
+            return False
         if not self.ping_server():
             print("ERROR: Unable to connect to frontend servr!")
-            return
+            return False
         if not self.token:
             print("ERROR: No token provided")
-            return
+            return False
         if not self.server.forward_request("cancel_order", user_token=self.token, order_id=order_id):
             print("ERROR: Failed to cancel order!")
-            return
+            return False
         print(f"INFO: Successfully cancelled order with id {order_id}")
+        return True
         
     # View active orders
     def view_orders(self):
         if not self.server:
             print("ERROR: No server defined!")
-            return
+            return False
         if not self.ping_server():
             print("ERROR: Unable to connect to frontend servr!")
-            return
+            return False
         if not self.token:
             print("ERROR: No token provided")
-            return
+            return False
         # Returns list of orders
         orders = self.server.forward_request("view_orders", user_token=self.token)
         pprint(orders)
+        return True
 
     # Show all available items
     def show_items(self):
         if not self.server:
             print("ERROR: No server defined!")
-            return
+            return False
         if not self.ping_server():
             print("ERROR: Unable to connect to frontend servr!")
-            return
+            return False
         # Returns list of items
         items = self.server.forward_request("show_items")
         pprint(items)
+        return True
     
 # Set the remote exception hook
 sys.excepthook = Pyro4.util.excepthook
