@@ -1,4 +1,4 @@
-# Networks and Systems: Compiler Design Summative
+# Networks and Systems: Distributed Systems Summative
 
 ## Prerequisites
 - Python 3
