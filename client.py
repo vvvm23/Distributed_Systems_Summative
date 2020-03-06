@@ -2,6 +2,7 @@ import sys
 from pprint import pprint
 import Pyro4
 import Pyro4.util
+import time
 
 # Client program class
 class Client:
@@ -177,12 +178,21 @@ class Client:
 sys.excepthook = Pyro4.util.excepthook
 if __name__ == "__main__":
     ns = Pyro4.locateNS() # Locate the name server
+    if not ns:
+        print("ERROR: Cannot find Name Server!")
+        exit()
+
     servers = [(name, uri) for name, uri in ns.list(prefix="just_hungry.front_end").items()]
     if not len(servers):
         print("ERROR: Cannot find frontend server!")
         exit()
     
     front_server = Pyro4.Proxy(servers[0][1])
+    try:
+        front_server._pyroBind()
+    except Exception as e:
+        print("ERROR: Cannot connect to frontend server.")
+        exit()
 
     client = None
     try:
@@ -224,8 +234,12 @@ if __name__ == "__main__":
                 client = Client(front_server)
                 client.set_username(input_username)
                 client.set_keyphrase(input_keyphrase)
-                client.create_account()
-                client.login()
+                if not client.create_account():
+                    client = None
+                    continue
+                if not client.login():
+                    client = None
+                    continue
             # Login
             elif not client and menu_action == 2:
                 print("Enter username of existing account.")
@@ -241,7 +255,9 @@ if __name__ == "__main__":
                 client = Client(front_server)
                 client.set_username(input_username)
                 client.set_keyphrase(input_keyphrase)
-                client.login()
+                if not client.login():
+                    client = None
+                    continue
             # Show Items
             elif (client and menu_action == 4):
                 client.show_items()
@@ -271,15 +287,19 @@ if __name__ == "__main__":
                 client.view_orders()
             # Logout
             elif client and menu_action == 5:
-                client.logout()
+                if not client.logout():
+                    continue
                 client = None
             # Delete Account
             elif client and menu_action == 6:
-                client.delete_account()
+                if not client.delete_account():
+                    continue
                 client = None
             elif menu_action == 0:
                 print("Goodbye..")
-                client.logout()
+                while not client.logout():
+                    print("ERROR: Failed to logout on exit. Retrying..")
+                    time.sleep(1)
                 break
             else:
                 print("ERROR: Unknown Option")
@@ -287,5 +307,7 @@ if __name__ == "__main__":
     # Ensure if we crash for whatever reason to logout the client
     except Exception as e:
         if client:
-            client.logout()
+            while not client.logout():
+                print("ERROR: Failed to logout on Exception. Retrying..")
+                time.sleep(1)
         raise e
