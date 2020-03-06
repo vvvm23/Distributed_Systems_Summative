@@ -148,6 +148,7 @@ class JustHungry:
 
     # Login user and return session token
     def login(self, username, keyphrase):
+        print(self.users)
         if self.users[username][1]:
             print(f"INFO: Failed to authenticate {username}")
             return None 

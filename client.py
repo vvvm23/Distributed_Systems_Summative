@@ -179,100 +179,105 @@ if __name__ == "__main__":
     front_server = Pyro4.Proxy(servers[0][1])
 
     client = None
+    try:
+        while True:
+            if client:
+                print(f"Currently logged in as {client.username}")
+            else:
+                print(f"Currently logged in anonymously")
 
-    while True:
+            print("\nSelect Option:")
+            if client:
+                print("\t1. Make Order")
+                print("\t2. Cancel Order")
+                print("\t3. View Orders")
+                print("\t4. Show Items")
+                print("\t5. Logout")
+                print("\t6. Delete Account")
+                print("\t0. Exit")
+            else:
+                print("\t1. Create Account")
+                print("\t2. Login")
+                print("\t0. Exit")
+
+            menu_action = int(input("> "))
+
+            # Create Account
+            if not client and menu_action == 1:
+                print("Enter username of new account.")
+                input_username = input("> ")
+                if not input_username or input_username == "":
+                    print("ERROR: Invalid Username!")
+                    continue
+                print("Enter keyphrase of new account.")
+                input_keyphrase = input("> ")
+                if not input_keyphrase or input_keyphrase == "":
+                    print("ERROR: Invalid Keyphrase!")
+                    continue
+                client = Client(front_server)
+                client.set_username(input_username)
+                client.set_keyphrase(input_keyphrase)
+                client.create_account()
+                client.login()
+            # Login
+            elif not client and menu_action == 2:
+                print("Enter username of existing account.")
+                input_username = input("> ")
+                if not input_username or input_username == "":
+                    print("ERROR: Invalid Username!")
+                    continue
+                print("Enter keyphrase of existing account.")
+                input_keyphrase = input("> ")
+                if not input_keyphrase or input_keyphrase == "":
+                    print("ERROR: Invalid Keyphrase!")
+                    continue
+                client = Client(front_server)
+                client.set_username(input_username)
+                client.set_keyphrase(input_keyphrase)
+                client.login()
+            # Show Items
+            elif (client and menu_action == 4):
+                client.show_items()
+            # Make Order
+            elif client and menu_action == 1:
+                print("Enter name of item you wish to order.")
+                input_name = input("> ")
+                print("Enter quantity.")
+                input_quantity = input("> ")
+                if not input_quantity.isnumeric():
+                    print("ERROR: Invalid quantity")
+                    continue
+                input_quantity = int(input_quantity)
+                if input_quantity <= 0:
+                    prin("ERROR: Invalid quantity")
+                    continue
+                print("Enter post code.")
+                input_post = input("> ")
+                client.make_order(input_name, input_quantity, input_post)
+            # Cancel Order
+            elif client and menu_action == 2:
+                print("Enter order id.")
+                input_order = input("> ")
+                client.cancel_order(input_order)
+            # View Orders
+            elif client and menu_action == 3:
+                client.view_orders()
+            # Logout
+            elif client and menu_action == 5:
+                client.logout()
+                client = None
+            # Delete Account
+            elif client and menu_action == 6:
+                client.delete_account()
+                client = None
+            elif menu_action == 0:
+                print("Goodbye..")
+                client.logout()
+                break
+            else:
+                print("ERROR: Unknown Option")
+                continue
+    except e as Exception:
         if client:
-            print(f"Currently logged in as {client.username}")
-        else:
-            print(f"Currently logged in anonymously")
-
-        print("\nSelect Option:")
-        if client:
-            print("\t1. Make Order")
-            print("\t2. Cancel Order")
-            print("\t3. View Orders")
-            print("\t4. Show Items")
-            print("\t5. Logout")
-            print("\t6. Delete Account")
-            print("\t0. Exit")
-        else:
-            print("\t1. Create Account")
-            print("\t2. Login")
-            print("\t0. Exit")
-
-        menu_action = int(input("> "))
-
-        # Create Account
-        if not client and menu_action == 1:
-            print("Enter username of new account.")
-            input_username = input("> ")
-            if not input_username or input_username == "":
-                print("ERROR: Invalid Username!")
-                continue
-            print("Enter keyphrase of new account.")
-            input_keyphrase = input("> ")
-            if not input_keyphrase or input_keyphrase == "":
-                print("ERROR: Invalid Keyphrase!")
-                continue
-            client = Client(front_server)
-            client.set_username(input_username)
-            client.set_keyphrase(input_keyphrase)
-            client.create_account()
-            client.login()
-        # Login
-        elif not client and menu_action == 2:
-            print("Enter username of existing account.")
-            input_username = input("> ")
-            if not input_username or input_username == "":
-                print("ERROR: Invalid Username!")
-                continue
-            print("Enter keyphrase of existing account.")
-            input_keyphrase = input("> ")
-            if not input_keyphrase or input_keyphrase == "":
-                print("ERROR: Invalid Keyphrase!")
-                continue
-            client = Client(front_server)
-            client.set_username(input_username)
-            client.set_keyphrase(input_keyphrase)
-            client.login()
-        # Show Items
-        elif (client and menu_action == 4):
-            client.show_items()
-        # Make Order
-        elif client and menu_action == 1:
-            print("Enter name of item you wish to order.")
-            input_name = input("> ")
-            print("Enter quantity.")
-            input_quantity = input("> ")
-            if not input_quantity.isnumeric():
-                print("ERROR: Invalid quantity")
-                continue
-            input_quantity = int(input_quantity)
-            if input_quantity <= 0:
-                prin("ERROR: Invalid quantity")
-                continue
-            print("Enter post code.")
-            input_post = input("> ")
-            client.make_order(input_name, input_quantity, input_post)
-        # Cancel Order
-        elif client and menu_action == 2:
-            print("Enter order id.")
-            input_order = input("> ")
-            client.cancel_order(input_order)
-        # View Orders
-        elif client and menu_action == 3:
-            client.view_orders()
-        # Logout
-        elif client and menu_action == 5:
             client.logout()
-            client = None
-        # Delete Account
-        elif client and menu_action == 6:
-            client.delete_account()
-            client = None
-        elif menu_action == 0:
-            print("Goodbye..")
-            break
-        else:
-            print("ERROR: Unknown Option")
-            continue
+        raise e
