@@ -135,14 +135,11 @@ class JustHungry:
 
     # Check if postcode is valid using external service
     def validate_postcode(self, code):
-        print(f"DEBUG: Checking https://api.postcodes.io/postcodes/{code}/validate")
-        result = True
-        # TODO: uncomment later <06-03-20, alex> #
-        # result = False
-        # with urllib.request.urlopen(f"https://api.postcodes.io/postcodes/{code}/validate") as res:
-            # json_res = json.loads(res.read().decode('utf-8'))
-            # print(json_res)
-            # result = json_res['result']
+        result = False
+        with urllib.request.urlopen(f"https://api.postcodes.io/postcodes/{code}/validate") as res:
+            json_res = json.loads(res.read().decode('utf-8'))
+            print(json_res)
+            result = json_res['result']
 
         return result
 
@@ -250,7 +247,6 @@ class JustHungry:
 # Set the remote exception hook
 sys.excepthook = Pyro4.util.excepthook
 if __name__ == "__main__":
-    # TODO: may be better to see which servers are up, then set id <06-03-20, alex> #
     # Set a random id
     server_rand_id = '%020x' % random.randrange(16 ** 20) 
     Pyro4.Daemon.serveSimple(
