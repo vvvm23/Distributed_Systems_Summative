@@ -19,6 +19,7 @@ class FrontServer:
 
     # Search for primary server and set it
     def set_primary(self):
+        print("ERROR: Current primary is down! Finding new server..")
         servers = [(name, uri) for name, uri in self.ns.list(prefix="just_hungry.back_end").items()]
         for s in servers:
             active = Pyro4.Proxy(s[1])
@@ -66,7 +67,6 @@ class FrontServer:
 
         # Check if primary is up
         if not self.ping_primary():
-            print("ERROR: Current primary is down! Finding new server..")
             # If not, find a new primary
             if not self.set_primary():
                 print("ERROR: Failed to find new primary server!")

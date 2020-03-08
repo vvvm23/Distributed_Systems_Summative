@@ -297,8 +297,10 @@ if __name__ == "__main__":
                 client = None
             elif menu_action == 0:
                 print("Goodbye..")
-                while not client.logout():
+                logout_attempts = 0
+                while not client.logout() and logout_attempts < 5:
                     print("ERROR: Failed to logout on exit. Retrying..")
+                    logout_attempts+=1
                     time.sleep(1)
                 break
             else:
@@ -307,7 +309,9 @@ if __name__ == "__main__":
     # Ensure if we crash for whatever reason to logout the client
     except Exception as e:
         if client:
-            while not client.logout():
+            logout_attempts = 0
+            while not client.logout() and logout_attempts < 5:
                 print("ERROR: Failed to logout on Exception. Retrying..")
+                logout_attempts+=1
                 time.sleep(1)
         raise e

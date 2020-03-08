@@ -10,6 +10,7 @@ def valid_server(uri):
         return False
     return True
 
+sys.excepthook = Pyro4.util.excepthook
 if __name__ == '__main__':
     ns = Pyro4.locateNS()
     

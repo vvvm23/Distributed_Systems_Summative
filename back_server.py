@@ -92,13 +92,11 @@ class JustHungry:
                     continue
                 if not sl.ping_respond():
                     continue
-                sl.slave_sync(self.users, self.user_tokens)
+                if not sl.get_master():
+                    sl.slave_sync(self.users, self.user_tokens)
 
     # Synchronises the slaves with the master
     def slave_sync(self, users, user_tokens):
-        # TODO: is this needed? <06-03-20, alex> #
-        if not self.is_master:
-            self.set_master(False)
         # We must initialise this again, copy doesn't seem to work with defaultdict
         print("INFO: Syncing with master server")
         self.users = defaultdict(lambda: [None, None, []])
@@ -113,11 +111,16 @@ class JustHungry:
 
     def toggle_status(self):
         self.is_working = not self.is_working
+
+        # We were working, but now aren't and are master
+        if not self.is_working and self.is_master:
+            front_server = Pyro4.Proxy([(name, uri) for name, uri in self.ns.list(prefix="just_hungry.front_end").items()][0][1])
+            print("ERROR: Current primary is down! Finding new server..")
+            front_server.set_primary()
         self.is_master = False
         print(f"INFO: Server is now {'UP' if self.is_working else 'DOWN'}")
         if self.is_working:
             slaves = [(name, uri) for name, uri in self.ns.list(prefix="just_hungry.back_end").items()]
-            print("INFO: Syncing with slave servers")
             # Synchronise with all back end servers in turn
             for s in slaves:
                 try:
@@ -138,14 +141,12 @@ class JustHungry:
         result = False
         with urllib.request.urlopen(f"https://api.postcodes.io/postcodes/{code}/validate") as res:
             json_res = json.loads(res.read().decode('utf-8'))
-            print(json_res)
             result = json_res['result']
 
         return result
 
     # Login user and return session token
     def login(self, username, keyphrase):
-        print(self.users)
         if self.users[username][1]:
             print(f"INFO: Failed to authenticate {username}")
             return None 
