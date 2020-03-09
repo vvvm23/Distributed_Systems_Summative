@@ -115,7 +115,6 @@ class JustHungry:
         # We were working, but now aren't and are master
         if not self.is_working and self.is_master:
             front_server = Pyro4.Proxy([(name, uri) for name, uri in self.ns.list(prefix="just_hungry.front_end").items()][0][1])
-            print("ERROR: Current primary is down! Finding new server..")
             front_server.set_primary()
         self.is_master = False
         print(f"INFO: Server is now {'UP' if self.is_working else 'DOWN'}")
