@@ -140,23 +140,30 @@ class JustHungry:
     def validate_postcode(self, code):
         # TODO: multiple apis <09-03-20, alex> #
         APIS = [
-            ("https://api.postcodes.io/postcodes/{code}", ['result'])
+            (f"https://api.postcodes.io/postcodes/{code}", ['longitude', 'latitude']),
+            (f"http://api.getthedata.com/postcode/{code}", ['longitude', 'latitude'])
         ]
-        result = False
+        result = None
         # TODO: retrieve latlon <09-03-20, alex> #
         for api in APIS:
             try:
                 with urllib.request.urlopen(api[0]) as res:
                     json_res = json.loads(res.read().decode('utf-8'))
                     result = {}
+                    print(api[0])
+                    print(json_res)
+
+                    if False in [True if x in json_res else False for x in api[1]]:
+                        continue
 
                     for field in api[1]:
                         result[field] = json_res[field]
 
-                    result = json_res['result']
+                    break
+
             except urllib.error.URLError as e:
                 continue
-
+        
         return result
 
     # Login user and return session token
@@ -224,16 +231,19 @@ class JustHungry:
             return None
         if address == "" or not address:
             return None 
-        if not self.validate_postcode(address):
+
+        post_lonlat = self.validate_postcode(address)
+
+        if not post_lonlat:
             print("ERROR: Invalid postcode!")
             return None
 
         order_id = '%020x' % random.randrange(16 ** 20) 
         self.users[user][2].append(
-                [order_id, item_name, quantity, address, self.items[item_name]*quantity, "processing", "3 days"]
+                [order_id, item_name, quantity, address, lonlat[0], lonlat[1], self.items[item_name]*quantity, "processing", "3 days"]
             )
         print("INFO: Successfully placed order")
-        return order_id 
+        return (order_id, *post_lonlat)
 
     # View orders by a user
     def view_orders(self, user_token):

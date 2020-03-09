@@ -120,9 +120,18 @@ class Client:
             print("ERROR: No token provided")
             return False
         # Get the order id
-        order_id = self.server.forward_request("make_order", user_token=self.token, item_name=item_name, quantity=quantity, address=address)
+        result = self.server.forward_request("make_order", user_token=self.token, item_name=item_name, quantity=quantity, address=address)
+
+        if result == None:
+            print("ERROR: Post Code was invalid")
+            return False
+
+        order_id = result[0]
+        lonlat = (result[1], result[2])
+
         if order_id:
             print(f"INFO: Created new order with id {order_id}")
+            print(f"INFO: Your order will be delivered to Longitude: {lonlat[0]}, Latitude: {lonlat[1]}")
         else:
             print("ERROR: Failed to make new order!")
             return False
@@ -158,9 +167,9 @@ class Client:
             return False
         # Returns list of orders
         orders = self.server.forward_request("view_orders", user_token=self.token)
-        print("OrderID\t\t\tItem\tQuantity\tPost Code\tTotal Cost\tStatus\t\tETA")
+        print("OrderID\t\t\tItem\tQuantity\tPost Code\tLongitude\tLatitude\tTotal Cost\tStatus\t\tETA")
         for order in orders:
-            print(f"{order[0]}\t{order[1]}\t{order[2]}\t\t{order[3]}\t\t{order[4]}\t\t{order[5]}\t{order[6]}")
+            print(f"{order[0]}\t{order[1]}\t{order[2]}\t\t{order[3]}\t\t{order[4]}\t\t{order[5]}\t\t{order[6]}\t\t{order[7]}\t{order[8]}")
         return True
 
     # Show all available items
@@ -169,7 +178,7 @@ class Client:
             print("ERROR: No server defined!")
             return False
         if not self.ping_server():
-            print("ERROR: Unable to connect to frontend servr!")
+            print("ERROR: Unable to connect to frontend server!")
             return False
         # Returns list of items
         items = self.server.forward_request("show_items")
