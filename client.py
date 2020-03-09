@@ -127,7 +127,7 @@ class Client:
             return False
 
         order_id = result[0]
-        lonlat = (result[1], result[2])
+        lonlat = (result[1]['longitude'], result[1]['latitude'])
 
         if order_id:
             print(f"INFO: Created new order with id {order_id}")

@@ -244,7 +244,7 @@ class JustHungry:
                 [order_id, item_name, quantity, address, post_lonlat['longitude'], post_lonlat['latitude'], self.items[item_name]*quantity, "processing", "3 days"]
             )
         print("INFO: Successfully placed order")
-        return (order_id, *post_lonlat)
+        return (order_id, post_lonlat)
 
     # View orders by a user
     def view_orders(self, user_token):
