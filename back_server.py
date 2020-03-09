@@ -139,13 +139,11 @@ class JustHungry:
 
     # Check if postcode is valid using external service
     def validate_postcode(self, code):
-        # TODO: multiple apis <09-03-20, alex> #
         APIS = [
             (f"https://api.postcodes.io/postcodes/{code}", 'result', ['longitude', 'latitude']),
             (f"http://api.getthedata.com/postcode/{code}", 'data', ['longitude', 'latitude'])
         ]
         result = None
-        # TODO: retrieve latlon <09-03-20, alex> #
         for api in APIS:
             try:
                 with urllib.request.urlopen(api[0]) as res:
