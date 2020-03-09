@@ -167,7 +167,7 @@ class Client:
             return False
         # Returns list of orders
         orders = self.server.forward_request("view_orders", user_token=self.token)
-        print("OrderID\t\t\tItem\tQuantity\tPost Code\tLongitude\tLatitude\tTotal Cost\tStatus\t\tETA")
+        print("OrderID\t\t\tItem\tQuantity\tPost Code\tLongitude\t\tLatitude\t\tTotal Cost\tStatus\t\tETA")
         for order in orders:
             print(f"{order[0]}\t{order[1]}\t{order[2]}\t\t{order[3]}\t\t{order[4]}\t\t{order[5]}\t\t{order[6]}\t\t{order[7]}\t{order[8]}")
         return True

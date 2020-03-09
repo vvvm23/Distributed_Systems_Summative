@@ -6,6 +6,7 @@ import urllib.error
 from collections import defaultdict
 import json
 import random
+from pprint import pprint
 '''
     Commands:
         User Login
@@ -140,8 +141,8 @@ class JustHungry:
     def validate_postcode(self, code):
         # TODO: multiple apis <09-03-20, alex> #
         APIS = [
-            (f"https://api.postcodes.io/postcodes/{code}", ['longitude', 'latitude']),
-            (f"http://api.getthedata.com/postcode/{code}", ['longitude', 'latitude'])
+            (f"https://api.postcodes.io/postcodes/{code}", 'result', ['longitude', 'latitude']),
+            (f"http://api.getthedata.com/postcode/{code}", 'data', ['longitude', 'latitude'])
         ]
         result = None
         # TODO: retrieve latlon <09-03-20, alex> #
@@ -150,14 +151,14 @@ class JustHungry:
                 with urllib.request.urlopen(api[0]) as res:
                     json_res = json.loads(res.read().decode('utf-8'))
                     result = {}
-                    print(api[0])
-                    print(json_res)
 
-                    if False in [True if x in json_res else False for x in api[1]]:
+                    if not api[1] in json_res:
+                        continue
+                    if False in [True if x in json_res[api[1]] else False for x in api[2]]:
                         continue
 
-                    for field in api[1]:
-                        result[field] = json_res[field]
+                    for field in api[2]:
+                        result[field] = json_res[api[1]][field]
 
                     break
 
@@ -240,7 +241,7 @@ class JustHungry:
 
         order_id = '%020x' % random.randrange(16 ** 20) 
         self.users[user][2].append(
-                [order_id, item_name, quantity, address, lonlat[0], lonlat[1], self.items[item_name]*quantity, "processing", "3 days"]
+                [order_id, item_name, quantity, address, post_lonlat['longitude'], post_lonlat['latitude'], self.items[item_name]*quantity, "processing", "3 days"]
             )
         print("INFO: Successfully placed order")
         return (order_id, *post_lonlat)
