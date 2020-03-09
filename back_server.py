@@ -2,6 +2,7 @@ import sys
 import Pyro4
 import Pyro4.util
 import urllib.request
+import urllib.error
 from collections import defaultdict
 import json
 import random
@@ -137,10 +138,24 @@ class JustHungry:
 
     # Check if postcode is valid using external service
     def validate_postcode(self, code):
+        # TODO: multiple apis <09-03-20, alex> #
+        APIS = [
+            ("https://api.postcodes.io/postcodes/{code}", ['result'])
+        ]
         result = False
-        with urllib.request.urlopen(f"https://api.postcodes.io/postcodes/{code}/validate") as res:
-            json_res = json.loads(res.read().decode('utf-8'))
-            result = json_res['result']
+        # TODO: retrieve latlon <09-03-20, alex> #
+        for api in APIS:
+            try:
+                with urllib.request.urlopen(api[0]) as res:
+                    json_res = json.loads(res.read().decode('utf-8'))
+                    result = {}
+
+                    for field in api[1]:
+                        result[field] = json_res[field]
+
+                    result = json_res['result']
+            except urllib.error.URLError as e:
+                continue
 
         return result
 
