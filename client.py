@@ -49,6 +49,7 @@ class Client:
             print("ERROR: Failed to obtain token!")
             return False
         print("INFO: Logged in successfully!")
+        print()
         return True
 
     # Client logout function
@@ -66,6 +67,7 @@ class Client:
             print("ERROR: Failed to logout!")
             return False
         print("INFO: Logged out successfully!")
+        print()
         self.token = None
         self.username = None
         self.keyphrase = None
@@ -86,6 +88,7 @@ class Client:
             print("ERROR: Failed to create account!")
             return False
         print("INFO: New account created!")
+        print()
         return True
     
     # Delete account
@@ -103,6 +106,7 @@ class Client:
             print("ERROR: Failed to delete account")
             return False
         print("INFO: Successfully deleted account!")
+        print()
         self.username = None
         self.keyphrase = None
         self.token = None
@@ -135,6 +139,7 @@ class Client:
         else:
             print("ERROR: Failed to make new order!")
             return False
+        print()
         return True
 
     # Cancel a order
@@ -152,6 +157,7 @@ class Client:
             print("ERROR: Failed to cancel order!")
             return False
         print(f"INFO: Successfully cancelled order with id {order_id}")
+        print()
         return True
         
     # View active orders
@@ -170,6 +176,7 @@ class Client:
         print("OrderID\t\t\tItem\tQuantity\tPost Code\tLongitude\t\tLatitude\t\tTotal Cost\tStatus\t\tETA")
         for order in orders:
             print(f"{order[0]}\t{order[1]}\t{order[2]}\t\t{order[3]}\t\t{order[4]}\t\t{order[5]}\t\t{order[6]}\t\t{order[7]}\t{order[8]}")
+        print()
         return True
 
     # Show all available items
@@ -182,7 +189,12 @@ class Client:
             return False
         # Returns list of items
         items = self.server.forward_request("show_items")
-        pprint(items)
+        
+        NB_COLS = 5
+        print("Available Items:")
+        for i, item in enumerate(items):
+            print(item + '\n' if not i%NB_COLS and not i == 0 or i == len(items)-1 else item + ', ', end='')
+        print()
         return True
     
 # Set the remote exception hook
@@ -208,7 +220,6 @@ if __name__ == "__main__":
     client = None
     try:
         while True:
-            print()
             if client:
                 print(f"Currently logged in as {client.username}")
             else:
@@ -309,7 +320,7 @@ if __name__ == "__main__":
             elif menu_action == 0:
                 print("Goodbye..")
                 logout_attempts = 0
-                while not client.logout() and logout_attempts < 5:
+                while client and not client.logout() and logout_attempts < 5:
                     print("ERROR: Failed to logout on exit. Retrying..")
                     logout_attempts+=1
                     time.sleep(1)
