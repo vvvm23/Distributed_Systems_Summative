@@ -1,7 +1,7 @@
 # Networks and Systems: Distributed Systems Summative
 
 ## Prerequisites
-- Python 3
+- Python 3 (A version that supports f-strings)
 - Pyro4 Python Package
 
 ## How to run the system
