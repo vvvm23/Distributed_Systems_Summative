@@ -30,3 +30,5 @@ I implemented a simple command line program to allow a user to make all requests
 
 ### Use of Web Services
 The back-end server can connect to two external web services to validate and retrieve the longitude and latitude of the delivery post code. I use two external web services in case one is unavailable, giving some fault tolerance.
+
+I use postcodes.io and getthedata.com as my two web services
